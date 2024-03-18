@@ -13,7 +13,7 @@ Cell::Cell(const char *str, bool isHead)
     _isHead = isHead;
 }
 
-void Cell::setStr(const char *str)
+bool Cell::setStr(const char *str)
 {
     char buff[BUFF_SIZE];
     myStrCpy(buff, str);
@@ -22,7 +22,7 @@ void Cell::setStr(const char *str)
     {
         _str[0] = '\0';
         _size = 0;
-        return;
+        return false;
     }
 
     replaceEntityReferences(buff);
@@ -34,12 +34,13 @@ void Cell::setStr(const char *str)
         _isValid = false;
         _str[0] = '\0';
         _size = 0;
-        return;
+        return false;
     }
 
     myStrCpy(_str, buff);
     _size = size;
     _isValid = true;
+    return true;
 }
 
 void Cell::setIsHead(bool isHead)

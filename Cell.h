@@ -13,7 +13,7 @@ public:
     Cell();
     Cell(const char *, bool = false);
 
-    void setStr(const char *);
+    bool setStr(const char *);
     void setIsHead(bool);
     const char *getStr() const;
     int getSize() const;

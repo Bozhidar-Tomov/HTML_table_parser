@@ -2,10 +2,9 @@
 #include "Utils.h"
 #include "constants.h"
 
-Row::Row()
+Row::Row() : _size(0)
 {
     _cells[0] = Cell();
-    _size = 0;
 }
 
 Row::Row(const Cell *values, int size)
@@ -43,13 +42,12 @@ void Row::setRow(const Cell *cells, int size)
     }
 }
 
-void Row::setCell(const char *str, int idx)
+bool Row::setCell(int idx, const char *str)
 {
     if (idx < 0 || idx >= _size)
-    {
-        return;
-    }
-    _cells[idx].setStr(str);
+        return false;
+
+    return _cells[idx].setStr(str);
 }
 
 // append
@@ -66,7 +64,7 @@ void Row::addCell(const Cell &cell)
 // at index
 void Row::addCell(const Cell &cell, int idx)
 {
-    if (idx < 0 || idx > _size || _size >= MAX_COLUMN_COUNT)
+    if (idx < 0 || idx >= _size || _size >= MAX_COLUMN_COUNT)
     {
         return;
     }
@@ -83,7 +81,8 @@ void Row::addCell(const Cell &cell, int idx)
 // at end
 void Row::removeCell()
 {
-    --_size;
+    if (_size > 0)
+        --_size;
 }
 
 // at index
@@ -100,4 +99,9 @@ void Row::removeCell(int idx)
     }
 
     --_size;
+}
+
+bool Row::isEmpty() const
+{
+    return _size == 0;
 }

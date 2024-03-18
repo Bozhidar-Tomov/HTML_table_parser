@@ -17,11 +17,13 @@ public:
     const Cell *getCells() const;
 
     void setRow(const Cell *, int);
-    void setCell(const char *, const int);
+    bool setCell(int, const char *);
 
     void addCell(const Cell &);
     void addCell(const Cell &, int);
 
     void removeCell();
     void removeCell(int);
+
+    bool isEmpty() const;
 };

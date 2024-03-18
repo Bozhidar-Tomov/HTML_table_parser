@@ -3,30 +3,62 @@
 #include <sstream>
 #include "Utils.h"
 
-Table::Table()
+Table::Table() : _rowsCount(0), _width(0), _colsCount(0)
 {
     _rows[0] = Row();
-    _rowsCount = 0;
-    _width = 0;
+}
+
+bool Table::removeRow(int idx)
+{
+    if (idx < 0 || idx >= _rowsCount)
+        return false;
+
+    for (int i = idx; i < _rowsCount - 1; ++i)
+    {
+        _rows[i] = _rows[i + 1];
+    }
+    --_rowsCount;
+    // TODO: update width and _colsCount
+    return true;
+}
+
+void Table::print(std::ostream &out) const
+{
+    for (int i = 0; i < _rowsCount; ++i)
+    {
+        printLine(i, out);
+    }
+
+    out << std::endl;
 }
 
 void Table::addRow(const Row &row)
 {
     if (_rowsCount >= MAX_ROW_COUNT)
-    {
         return;
-    }
 
     _rows[_rowsCount++] = row;
+    setWidth(row);
+
+    _colsCount = row.getSize() > _colsCount ? row.getSize() : _colsCount;
+}
+
+bool Table::addRow(int idx, const Row &row)
+{
+    if (_rowsCount >= MAX_ROW_COUNT || idx < 0 || idx >= _rowsCount)
+        return false;
+
+    _rows[idx] = row;
+    ++_rowsCount;
+    setWidth(row);
+    return true;
 }
 
 bool Table::loadFromFIle(const char *fileName)
 {
     std::ifstream file(fileName);
     if (!file.is_open())
-    {
         return false;
-    }
 
     parser.parse(file, *this);
 
@@ -34,22 +66,61 @@ bool Table::loadFromFIle(const char *fileName)
     return true;
 }
 
+bool Table::changeCellData(int rowIdx, int colIdx, const char *data)
+{
+    if (rowIdx < 0 || rowIdx >= _rowsCount)
+        return false;
+
+    return _rows[rowIdx].setCell(colIdx, data);
+}
+
 void Table::setWidth(const Row &row)
 {
     for (int i = 0; i < row.getSize(); ++i)
-    {
         if (row.getCells()[i].getSize() > _width)
-        {
             _width = row.getCells()[i].getSize();
+}
+
+void Table::printLine(const int rowIdx, std::ostream &out) const
+{
+    for (int i = 0; i < _colsCount; ++i)
+    {
+        out << VERTICAL_DELIM;
+
+        int valueSize = _rows[rowIdx].getCells()[i].getSize();
+
+        int diff = (_width - valueSize + 2);
+
+        bool extraSpace = false;
+
+        if (diff % 2 != 0)
+        {
+            extraSpace = true;
+            --diff;
         }
+
+        diff /= 2;
+
+        if (diff == 0)
+        {
+            diff = 2;
+        }
+
+        mySetW(diff + extraSpace, DEFAULT_CHAR, out);
+        printStr(_rows[rowIdx].getCells()[i].getStr(), out);
+        mySetW(diff, DEFAULT_CHAR, out);
+        continue;
+
+        break;
     }
+    out << VERTICAL_DELIM << std::endl;
 }
 
 Table::HtmlTableParser::HtmlTableParser() : _inTable(false), _inRow(false), _inData(false), _ch('\0') {}
 
 void Table::HtmlTableParser::parse(std::istream &in, Table &table)
 {
-    char data[BUFF_SIZE + 1];
+    char data[BUFF_rowsCount + 1];
     int dataPtr = 0;
     Row row;
 
@@ -58,9 +129,9 @@ void Table::HtmlTableParser::parse(std::istream &in, Table &table)
         switch (_ch)
         {
         case '<':
-            char tag[MAX_TAG_SIZE + 1];
+            char tag[MAX_TAG_rowsCount + 1];
 
-            in.get(tag, MAX_TAG_SIZE + 1, '>');
+            in.get(tag, MAX_TAG_rowsCount + 1, '>');
             in.get(_ch); // consume '>'
             if (myStrCmp(tag, "table"))
             {
@@ -98,7 +169,7 @@ void Table::HtmlTableParser::parse(std::istream &in, Table &table)
             }
             break;
         default:
-            if (_inData && dataPtr < BUFF_SIZE)
+            if (_inData && dataPtr < BUFF_rowsCount)
             {
                 data[dataPtr++] = _ch;
             }
