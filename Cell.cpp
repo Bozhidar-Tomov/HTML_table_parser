@@ -63,6 +63,11 @@ bool Cell::getIsHead() const
     return _isHead;
 }
 
+void Cell::print(std::ostream &out) const
+{
+    printStr(_str, out);
+}
+
 void Cell::replaceEntityReferences(char *str)
 {
     int i = 0, j = 0;

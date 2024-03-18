@@ -1,5 +1,6 @@
 #pragma once
 #include "constants.h"
+#include <ostream>
 
 class Cell
 {
@@ -18,6 +19,8 @@ public:
     const char *getStr() const;
     int getSize() const;
     bool getIsHead() const;
+
+    void print(std::ostream &) const;
 
 private:
     void replaceEntityReferences(char *);

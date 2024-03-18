@@ -3,7 +3,7 @@
 #include <sstream>
 #include "Utils.h"
 
-Table::Table() : _rowsCount(0), _width(0), _colsCount(0)
+Table::Table() : _rowsCount(0), _width(0), _colsCount(0) //
 {
     _rows[0] = Row();
 }
@@ -25,9 +25,7 @@ bool Table::removeRow(int idx)
 void Table::print(std::ostream &out) const
 {
     for (int i = 0; i < _rowsCount; ++i)
-    {
         printLine(i, out);
-    }
 
     out << std::endl;
 }
@@ -71,7 +69,11 @@ bool Table::changeCellData(int rowIdx, int colIdx, const char *data)
     if (rowIdx < 0 || rowIdx >= _rowsCount)
         return false;
 
-    return _rows[rowIdx].setCell(colIdx, data);
+    bool res = _rows[rowIdx].setCell(colIdx, data);
+
+    if (res)
+        setWidth(_rows[rowIdx]);
+    return res;
 }
 
 void Table::setWidth(const Row &row)
@@ -81,7 +83,7 @@ void Table::setWidth(const Row &row)
             _width = row.getCells()[i].getSize();
 }
 
-void Table::printLine(const int rowIdx, std::ostream &out) const
+void Table::printLine(int rowIdx, std::ostream &out) const
 {
     for (int i = 0; i < _colsCount; ++i)
     {
@@ -102,16 +104,12 @@ void Table::printLine(const int rowIdx, std::ostream &out) const
         diff /= 2;
 
         if (diff == 0)
-        {
             diff = 2;
-        }
 
         mySetW(diff + extraSpace, DEFAULT_CHAR, out);
-        printStr(_rows[rowIdx].getCells()[i].getStr(), out);
-        mySetW(diff, DEFAULT_CHAR, out);
-        continue;
+        _rows[rowIdx].getCells()[i].print(out);
 
-        break;
+        mySetW(diff, DEFAULT_CHAR, out);
     }
     out << VERTICAL_DELIM << std::endl;
 }
@@ -120,7 +118,7 @@ Table::HtmlTableParser::HtmlTableParser() : _inTable(false), _inRow(false), _inD
 
 void Table::HtmlTableParser::parse(std::istream &in, Table &table)
 {
-    char data[BUFF_rowsCount + 1];
+    char data[BUFF_SIZE + 1];
     int dataPtr = 0;
     Row row;
 
@@ -129,14 +127,12 @@ void Table::HtmlTableParser::parse(std::istream &in, Table &table)
         switch (_ch)
         {
         case '<':
-            char tag[MAX_TAG_rowsCount + 1];
+            char tag[MAX_TAG_SIZE + 1];
 
-            in.get(tag, MAX_TAG_rowsCount + 1, '>');
+            in.get(tag, MAX_TAG_SIZE + 1, '>');
             in.get(_ch); // consume '>'
             if (myStrCmp(tag, "table"))
-            {
                 _inTable = true;
-            }
             else if (myStrCmp(tag, "/table"))
             {
                 _inTable = false;
@@ -153,9 +149,7 @@ void Table::HtmlTableParser::parse(std::istream &in, Table &table)
                 table.addRow(row);
             }
             else if (_inRow && (myStrCmp(tag, "td") || myStrCmp(tag, "th")))
-            {
                 _inData = true;
-            }
             else if (_inRow && (myStrCmp(tag, "/td") || myStrCmp(tag, "/th")))
             {
                 _inData = false;
@@ -169,10 +163,8 @@ void Table::HtmlTableParser::parse(std::istream &in, Table &table)
             }
             break;
         default:
-            if (_inData && dataPtr < BUFF_rowsCount)
-            {
+            if (_inData && dataPtr < BUFF_SIZE)
                 data[dataPtr++] = _ch;
-            }
             break;
         }
     }

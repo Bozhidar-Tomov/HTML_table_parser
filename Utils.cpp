@@ -76,22 +76,16 @@ int strToInt(const char *str)
 void printStr(const char *str, std::ostream &oStream)
 {
     if (!str)
-    {
         return;
-    }
 
     while (*str)
-    {
         oStream << *str++;
-    }
 }
 
 void mySetW(const int w, char ch, std::ostream &oStream)
 {
     for (int i = 0; i < w; ++i)
-    {
         oStream << ch;
-    }
 }
 
 // Some external resources are used in the implementation of this function!

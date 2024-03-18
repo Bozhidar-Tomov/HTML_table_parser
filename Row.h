@@ -1,6 +1,7 @@
 #pragma once
 #include "constants.h"
 #include "Cell.h"
+#include <ostream>
 
 struct Row
 {
