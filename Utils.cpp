@@ -1,4 +1,4 @@
-#include <iostream>
+#include <ostream>
 
 void myStrCpy(char *destination, const char *source)
 {

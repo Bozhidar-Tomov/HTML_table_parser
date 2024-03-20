@@ -26,17 +26,20 @@ private:
 public:
     Table();
 
-    bool addRow(int, const Row &);
-    bool loadFromFIle(const char *);
+    bool addRow(int, const Row &);   //
+    void addRow(const Row &);        // TODO: bool
+    bool loadFromFile(const char *); //
+    bool saveToFile(const char *);   //
 
-    bool changeCellData(int, int, const char *);
+    bool changeCellData(int, int, const char *); //
 
-    bool removeRow(int);
+    bool removeRow(int); //
 
     void print(std::ostream &) const;
+    const Row *getRows() const;
+    int getColsCount() const;
 
 private:
-    void addRow(const Row &);
     void setWidth(const Row &);
     void printLine(const int, std::ostream &) const;
 };

@@ -1,6 +1,6 @@
 #pragma once
 #include "constants.h"
-#include <ostream>
+#include <iostream>
 
 class Cell
 {
@@ -16,9 +16,9 @@ public:
 
     bool setStr(const char *);
     void setIsHead(bool);
+    bool isHead() const;
     const char *getStr() const;
     int getSize() const;
-    bool getIsHead() const;
 
     void print(std::ostream &) const;
 

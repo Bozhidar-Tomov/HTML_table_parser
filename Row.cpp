@@ -44,8 +44,10 @@ void Row::setRow(const Cell *cells, int size)
 
 bool Row::setCell(int idx, const char *str)
 {
-    if (idx < 0 || idx >= _size)
+    if (idx < 0 || idx >= MAX_COLUMN_COUNT)
         return false;
+
+    _size = idx + 1 > _size ? idx + 1 : _size;
 
     return _cells[idx].setStr(str);
 }

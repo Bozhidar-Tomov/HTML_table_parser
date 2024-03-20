@@ -1,5 +1,6 @@
 #include "Cell.h"
 #include "Utils.h"
+#include <iostream>
 
 Cell::Cell()
 {
@@ -48,6 +49,11 @@ void Cell::setIsHead(bool isHead)
     _isHead = isHead;
 }
 
+bool Cell::isHead() const
+{
+    return _isHead;
+}
+
 const char *Cell::getStr() const
 {
     return _str;
@@ -58,14 +64,17 @@ int Cell::getSize() const
     return _size;
 }
 
-bool Cell::getIsHead() const
-{
-    return _isHead;
-}
-
 void Cell::print(std::ostream &out) const
 {
+    if (_isHead && &out == &std::cout)
+    {
+        std::cout << "* ";
+    }
     printStr(_str, out);
+    if (_isHead && &out == &std::cout)
+    {
+        std::cout << " *";
+    }
 }
 
 void Cell::replaceEntityReferences(char *str)
