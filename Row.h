@@ -1,7 +1,6 @@
 #pragma once
-#include "constants.h"
 #include "Cell.h"
-#include <ostream>
+#include "constants.h"
 
 struct Row
 {
@@ -11,22 +10,22 @@ private:
     int _isValid = true;
 
 public:
-    Row() = default;        //
-    Row(const Cell *, int); //
+    Row() = default;
+    Row(const Cell *, int);
 
-    int getSize() const;          //
-    const Cell *getCells() const; //
+    int getSize() const;
+    const Cell *getCells() const;
 
-    bool setRow(const Cell *, int);          //
-    bool setCell(int, const char *);         //
-    bool setCellFullSpan(int, const char *); //
+    bool setRow(const Cell *, int);
+    bool setCell(int, const char *);
+    bool setCellFullSpan(int, const char *);
 
-    bool addCell(const Cell &);      //
-    bool addCell(const Cell &, int); //
+    bool addCell(const Cell &);
+    bool addCell(const Cell &, int);
 
-    bool removeCell();    //
-    bool removeCell(int); //
+    bool removeCell();
+    bool removeCell(int);
 
-    bool isEmpty() const; //
-    bool isValid() const; //
+    bool isEmpty() const;
+    bool isValid() const;
 };

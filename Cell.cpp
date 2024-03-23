@@ -1,6 +1,6 @@
+#include <iostream>
 #include "Cell.h"
 #include "Utils.h"
-#include <iostream>
 
 Cell::Cell(const char *str, bool isHead)
 {

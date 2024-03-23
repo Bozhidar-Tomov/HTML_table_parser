@@ -25,25 +25,25 @@ class Table
 public:
     Table() = default;
 
-    bool addRow(const Row &);        //
-    bool addRow(int, const Row &);   //
-    bool loadFromFile(const char *); //
-    bool saveToFile(const char *);   //
+    bool addRow(const Row &);
+    bool addRow(int, const Row &);
+    bool loadFromFile(const char *);
+    bool saveToFile(const char *);
 
-    bool changeCellData(int, int, const char *); //
+    bool changeCellData(int, int, const char *);
 
-    const Row *getRows() const; //
-    int getColsCount() const;   //
-    int getRowsCount() const;   //
+    const Row *getRows() const;
+    int getColsCount() const;
+    int getRowsCount() const;
 
-    bool removeRow();    //
-    bool removeRow(int); //
+    bool removeRow();
+    bool removeRow(int);
 
-    void print(std::ostream &) const; //
+    void print(std::ostream &) const;
 
 private:
-    void setWidth(const Row &);                      //
-    void printLine(const int, std::ostream &) const; //
+    void setWidth(const Row &);
+    void printLine(const int, std::ostream &) const;
 
-    void updateDimensions(); //
+    void updateDimensions();
 };
