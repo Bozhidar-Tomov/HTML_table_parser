@@ -38,9 +38,15 @@ Tag getTag(const char *tag)
     return Tag::unknown;
 }
 
-Table::Table() : _rowsCount(0), _width(0), _colsCount(0) //
+bool Table::removeRow()
 {
-    _rows[0] = Row();
+    if (_rowsCount < 1)
+        return false;
+
+    --_rowsCount;
+
+    updateDimensions();
+    return true;
 }
 
 bool Table::removeRow(int idx)
@@ -53,7 +59,8 @@ bool Table::removeRow(int idx)
         _rows[i] = _rows[i + 1];
     }
     --_rowsCount;
-    // TODO: update width and _colsCount
+
+    updateDimensions();
     return true;
 }
 
@@ -65,37 +72,27 @@ void Table::print(std::ostream &out) const
             printLine(i, out);
 
         out << std::endl;
-        return;
     }
     else
     {
         out << "<table>\n";
-
         for (int i = 0; i < _rowsCount; ++i)
         {
             out << "\t<tr>\n";
 
             for (int j = 0; j < _rows[i].getSize(); ++j)
             {
-                if (_rows[i].getCells()[j].isHead())
-                {
-                    out << "\t\t<th>";
-                    _rows[i].getCells()[j].print(out);
-                    out << "</th>\n";
-                }
+                const char *o_tag = {(_rows[i].getCells()[j].isHead() ? "\t\t<th>" : "\t\t<td>")};
+                const char *c_tag = {(_rows[i].getCells()[j].isHead() ? "</th>\n" : "</td>\n")};
 
-                else
-                {
-                    out << "\t\t<td>";
-                    _rows[i].getCells()[j].print(out);
-                    out << "</td>\n";
-                }
+                out << o_tag;
+                _rows[i].getCells()[j].print(out);
+                out << c_tag;
             }
+
             out << "\t</tr>\n";
         }
-
         out << "</table>";
-        return;
     }
 }
 
@@ -109,15 +106,21 @@ int Table::getColsCount() const
     return _colsCount;
 }
 
-void Table::addRow(const Row &row)
+int Table::getRowsCount() const
+{
+    return _colsCount;
+}
+
+bool Table::addRow(const Row &row)
 {
     if (_rowsCount >= MAX_ROW_COUNT)
-        return;
+        return false;
 
     _rows[_rowsCount++] = row;
-    setWidth(row);
 
+    setWidth(row);
     _colsCount = row.getSize() > _colsCount ? row.getSize() : _colsCount;
+    return true;
 }
 
 bool Table::addRow(int idx, const Row &row)
@@ -130,17 +133,19 @@ bool Table::addRow(int idx, const Row &row)
 
     _rows[idx] = row;
     ++_rowsCount;
+
     setWidth(row);
+    _colsCount = row.getSize() > _colsCount ? row.getSize() : _colsCount;
     return true;
 }
 
 bool Table::loadFromFile(const char *fileName)
 {
-    std::ifstream file(fileName);
+    std::ifstream file(fileName, std::ios::in);
     if (!file.is_open())
         return false;
 
-    parser.parse(file, *this);
+    _parser.parse(file, *this);
 
     file.close();
     return true;
@@ -148,13 +153,10 @@ bool Table::loadFromFile(const char *fileName)
 
 bool Table::saveToFile(const char *fileName)
 {
-    std::ofstream file(fileName);
+    std::ofstream file(fileName, std::ios::out);
 
     if (!file)
-    {
-        std::cerr << "Unable to open file: " << fileName << std::endl;
         return false;
-    }
 
     print(file);
 
@@ -165,7 +167,7 @@ bool Table::saveToFile(const char *fileName)
 
 bool Table::changeCellData(int rowIdx, int colIdx, const char *data)
 {
-    if (rowIdx < 0 || rowIdx >= _rowsCount || colIdx >= _colsCount)
+    if (rowIdx < 0 || rowIdx >= _rowsCount || colIdx < 0 || colIdx >= _colsCount)
         return false;
 
     bool res = _rows[rowIdx].setCell(colIdx, data);
@@ -178,20 +180,22 @@ bool Table::changeCellData(int rowIdx, int colIdx, const char *data)
 void Table::setWidth(const Row &row)
 {
     for (int i = 0; i < row.getSize(); ++i)
-        if (row.getCells()[i].getSize() + (row.getCells()[i].isHead() ? 4 : 0) > _width)
-            _width = row.getCells()[i].getSize() + (row.getCells()[i].isHead() ? 4 : 0);
+    {
+        int currWidth = row.getCells()[i].getSize() +
+                        (row.getCells()[i].isHead() ? myStrLen(HEAD_OPEN) + myStrLen(HEAD_CLOSE) : 0);
+
+        if (currWidth > _width)
+            _width = currWidth;
+    }
 }
 
 void Table::printLine(int rowIdx, std::ostream &out) const
 {
     for (int i = 0; i < _colsCount; ++i)
     {
-        out << VERTICAL_DELIM;
+        const Cell &cell = _rows[rowIdx].getCells()[i];
 
-        int valueSize = _rows[rowIdx].getCells()[i].getSize();
-
-        int diff = (_width - valueSize + 2);
-
+        int diff = (_width - cell.getSize() + 2);
         bool extraSpace = false;
 
         if (diff % 2 != 0)
@@ -201,23 +205,32 @@ void Table::printLine(int rowIdx, std::ostream &out) const
         }
 
         diff /= 2;
+        diff = !diff ? 2 : diff;
 
-        if (diff == 0)
-            diff = 2;
-
-        mySetW(diff + extraSpace + (_rows[rowIdx].getCells()[i].isHead() ? 0 : 2), DEFAULT_CHAR, out);
-        _rows[rowIdx].getCells()[i].print(out);
-
-        mySetW(diff + (_rows[rowIdx].getCells()[i].isHead() ? 0 : 2), DEFAULT_CHAR, out);
+        out << VERTICAL_DELIM;
+        mySetW(diff + extraSpace + (cell.isHead() ? 0 : myStrLen(HEAD_OPEN)), DEFAULT_CHAR, out);
+        cell.print(out);
+        mySetW(diff + (cell.isHead() ? 0 : myStrLen(HEAD_CLOSE)), DEFAULT_CHAR, out);
     }
     out << VERTICAL_DELIM << std::endl;
 }
 
-Table::HtmlTableParser::HtmlTableParser() : _inTable(false), _inRow(false), _inData(false), _ch('\0') {}
+void Table::updateDimensions()
+{
+    _colsCount = 0;
+    _width = 0;
+
+    for (int i = 0; i < _rowsCount; ++i)
+    {
+        setWidth(_rows[i]);
+        _colsCount = _colsCount < _rows[i].getSize() ? _rows[i].getSize() : _colsCount;
+    }
+}
 
 void Table::HtmlTableParser::parse(std::istream &in, Table &table)
 {
-    char data[BUFF_SIZE + 1];
+    int getIdx = in.tellg();
+    char data[BUFF_SIZE + 1] = {'\0'};
     int dataPtr = 0;
     Row row;
 
@@ -228,14 +241,19 @@ void Table::HtmlTableParser::parse(std::istream &in, Table &table)
             char tag[MAX_TAG_SIZE + 1];
             in.get(tag, MAX_TAG_SIZE + 1, CLOSING_TAG);
             in.get(_ch); // skipping '>'
+
             switch (getTag(tag))
             {
             case Tag::table:
                 _inTable = true;
                 break;
             case Tag::_table:
+            {
                 _inTable = false;
+                in.seekg(getIdx);
                 return;
+            }
+
             case Tag::tr:
                 if (_inTable)
                 {
@@ -269,15 +287,12 @@ void Table::HtmlTableParser::parse(std::istream &in, Table &table)
                     row.addCell(cell);
                 }
                 break;
+            default:
+                if (_inData && dataPtr < BUFF_SIZE)
+                    data[dataPtr++] = _ch;
             }
         }
         else if (_inData && dataPtr < BUFF_SIZE)
             data[dataPtr++] = _ch;
     }
-}
-
-#include <fstream>
-
-void saveTableToHTML(const Table &table, const std::string &filename)
-{
 }

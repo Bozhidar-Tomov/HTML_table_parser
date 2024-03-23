@@ -2,29 +2,23 @@
 #include "Utils.h"
 #include <iostream>
 
-Cell::Cell()
-{
-    _str[0] = '\0';
-    _size = 0;
-}
-
 Cell::Cell(const char *str, bool isHead)
 {
-    setStr(str);
+    _isValid = setStr(str);
     _isHead = isHead;
 }
 
 bool Cell::setStr(const char *str)
 {
-    char buff[BUFF_SIZE];
-    myStrCpy(buff, str);
-
-    if (!buff)
+    if (!str)
     {
         _str[0] = '\0';
         _size = 0;
         return false;
     }
+
+    char buff[BUFF_SIZE];
+    myStrCpy(buff, str);
 
     replaceEntityReferences(buff);
 
@@ -32,7 +26,6 @@ bool Cell::setStr(const char *str)
 
     if (size > MAX_FIELD_SIZE)
     {
-        _isValid = false;
         _str[0] = '\0';
         _size = 0;
         return false;
@@ -40,8 +33,12 @@ bool Cell::setStr(const char *str)
 
     myStrCpy(_str, buff);
     _size = size;
-    _isValid = true;
     return true;
+}
+
+const char *Cell::getStr() const
+{
+    return _str;
 }
 
 void Cell::setIsHead(bool isHead)
@@ -54,27 +51,25 @@ bool Cell::isHead() const
     return _isHead;
 }
 
-const char *Cell::getStr() const
-{
-    return _str;
-}
-
 int Cell::getSize() const
 {
     return _size;
 }
 
+bool Cell::isValid() const
+{
+    return _isValid;
+}
+
 void Cell::print(std::ostream &out) const
 {
     if (_isHead && &out == &std::cout)
-    {
-        std::cout << "* ";
-    }
+        std::cout << HEAD_OPEN;
+
     printStr(_str, out);
+
     if (_isHead && &out == &std::cout)
-    {
-        std::cout << " *";
-    }
+        std::cout << HEAD_CLOSE;
 }
 
 void Cell::replaceEntityReferences(char *str)

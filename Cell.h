@@ -1,6 +1,6 @@
 #pragma once
+#include <ostream>
 #include "constants.h"
-#include <iostream>
 
 class Cell
 {
@@ -11,17 +11,20 @@ private:
     bool _isHead = false;
 
 public:
-    Cell();
-    Cell(const char *, bool = false);
+    Cell() = default;                 //
+    Cell(const char *, bool = false); //
 
-    bool setStr(const char *);
-    void setIsHead(bool);
-    bool isHead() const;
-    const char *getStr() const;
-    int getSize() const;
+    bool setStr(const char *);  //
+    const char *getStr() const; //
 
-    void print(std::ostream &) const;
+    void setIsHead(bool); //
+    bool isHead() const;  //
+
+    int getSize() const; //
+    bool isValid() const;
+
+    void print(std::ostream &) const; //
 
 private:
-    void replaceEntityReferences(char *);
+    void replaceEntityReferences(char *); //
 };

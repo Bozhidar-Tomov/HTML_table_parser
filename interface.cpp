@@ -38,14 +38,18 @@ Option getOption(const char *command)
     return Option::unknown;
 }
 
-struct Parameters
+struct Params
 {
+private:
     char _params[MAX_NUM_OF_PARAMS][MAX_TAG_ARGUMENT_SIZE] = {{'\0'}};
     int _count = 0;
+    mutable int _pos = 0;
 
+public:
     void readParameters(std::istream &in)
     {
         _count = 0;
+        _pos = 0;
 
         char line[COMMAND_MAX_SIZE];
         in.getline(line, COMMAND_MAX_SIZE);
@@ -53,10 +57,50 @@ struct Parameters
 
         while (!ss.eof() && _count < MAX_NUM_OF_PARAMS)
             ss.getline(_params[_count++], MAX_TAG_ARGUMENT_SIZE, ' ');
-        return;
+    }
+
+    const char *getNext() const
+    {
+        if (eof())
+            return nullptr;
+        return _params[_pos++];
+    }
+
+    const char *getCurr() const
+    {
+        if (eof())
+            return nullptr;
+        return _params[_pos];
+    }
+
+    bool eof() const
+    {
+        return _pos >= _count;
+    }
+
+    void clear()
+    {
+        _count = 0;
+        _pos = 0;
     }
 
 } params;
+
+namespace Handlers
+{
+    void handleFileOperation(Option option, Table &table, Params &params)
+    {
+        const char *operation = {(option == Option::load) ? "loaded." : "saved."};
+        bool success = (option == Option::load) ? table.loadFromFile(params.getCurr()) : table.saveToFile(params.getCurr());
+
+        if (!success)
+            std::cout << "File " << params.getCurr() << " cannot be " << operation << std::endl;
+        else
+            std::cout << "Table successfully " << operation << std::endl;
+    }
+};
+
+//=========================================================
 
 void run()
 {
@@ -81,6 +125,8 @@ void run()
         char option[COMMAND_MAX_SIZE] = {'\0'};
         std::cin >> option;
 
+        params.clear();
+
         if (std::cin.peek() == DEFAULT_CHAR)
         {
             std::cin.ignore();
@@ -92,43 +138,33 @@ void run()
         case Option::load:
         case Option::save:
         {
-            if (!params._params[0])
+            if (!params.getCurr())
             {
                 std::cout << "Source file not specified!" << std::endl;
                 break;
             }
 
-            if (getOption(option) == Option::load)
-            {
-                if (!table.loadFromFile(params._params[0]))
-                {
-                    std::cout << "Cannot load file " << params._params[0] << std::endl;
-                    break;
-                }
-            }
-            else
-            {
-                if (!table.saveToFile(params._params[0]))
-                {
-                    std::cout << "Cannot save to file " << params._params[0] << std::endl;
-                    break;
-                }
-            }
-
-            std::cout << "Table loaded successfully." << std::endl;
+            Handlers::handleFileOperation(getOption(option), table, params);
         }
         break;
         case Option::addRow:
         {
             Cell cells[MAX_COLUMN_COUNT];
 
-            int rowIdx = strToInt(params._params[0]);
+            if (params.eof())
+            {
+                std::cout << "Parameters not specified!" << std::endl;
+                break;
+            }
+
+            int rowIdx = strToInt(params.getCurr() - 1);
+            if (rowIdx != -1)
+                params.getNext();
+
             int idx = 0;
 
-            for (int i = 0; i < params._count; ++i)
-            {
-                cells[idx++] = Cell(params._params[i]);
-            }
+            while (!params.eof())
+                cells[idx++] = Cell(params.getNext());
 
             if (rowIdx == -1)
                 table.addRow(Row(cells, idx));
@@ -142,17 +178,24 @@ void run()
 
         case Option::removeRow:
         {
-            int idx = strToInt(params._params[0]);
-
-            if (idx == -1)
+            if (params.eof())
+            {
+                if (!table.removeRow())
+                    std::cout << "Cannot remove row. Table is empty" << std::endl;
                 break;
-            table.removeRow(idx);
+            }
+
+            int idx = strToInt(params.getCurr() - 1);
+            if (idx == -1)
+                std::cout << "Invalid index!\n";
+            else if (!table.removeRow(idx))
+                std::cout << "Cannot remove row at index " << idx << "." << std::endl;
         }
         break;
         case Option::edit:
         {
-            int rowIdx = strToInt(params._params[0]);
-            int colIdx = strToInt(params._params[1]);
+            int rowIdx = strToInt(params.getNext() - 1);
+            int colIdx = strToInt(params.getNext() - 1);
 
             if (rowIdx == -1 || colIdx == -1)
             {
@@ -160,12 +203,11 @@ void run()
                 break;
             }
 
-            if (!table.changeCellData(rowIdx, colIdx, params._params[2]))
+            if (!table.changeCellData(rowIdx, colIdx, params.getNext()))
             {
                 std::cout << "Error: unable to change data!\n";
                 break;
             }
-            std::cout << "Operation successful\n";
         }
         break;
         case Option::quit:

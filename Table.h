@@ -5,7 +5,6 @@
 
 class Table
 {
-private:
     Row _rows[MAX_ROW_COUNT];
     int _rowsCount = 0;
     int _width = 0;
@@ -19,27 +18,32 @@ private:
         char _ch = '\0';
 
     public:
-        HtmlTableParser();
+        HtmlTableParser() = default;
         void parse(std::istream &, Table &);
-    } parser;
+    } _parser;
 
 public:
-    Table();
+    Table() = default;
 
+    bool addRow(const Row &);        //
     bool addRow(int, const Row &);   //
-    void addRow(const Row &);        // TODO: bool
     bool loadFromFile(const char *); //
     bool saveToFile(const char *);   //
 
     bool changeCellData(int, int, const char *); //
 
+    const Row *getRows() const; //
+    int getColsCount() const;   //
+    int getRowsCount() const;   //
+
+    bool removeRow();    //
     bool removeRow(int); //
 
-    void print(std::ostream &) const;
-    const Row *getRows() const;
-    int getColsCount() const;
+    void print(std::ostream &) const; //
 
 private:
-    void setWidth(const Row &);
-    void printLine(const int, std::ostream &) const;
+    void setWidth(const Row &);                      //
+    void printLine(const int, std::ostream &) const; //
+
+    void updateDimensions(); //
 };

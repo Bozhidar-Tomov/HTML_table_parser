@@ -18,3 +18,6 @@ constexpr char VERTICAL_DELIM = '|';
 constexpr char HORIZONTAL_DELIM = '-';
 constexpr char DEFAULT_CHAR = ' ';
 constexpr int MAX_NUM_OF_PARAMS = 30;
+
+constexpr char HEAD_OPEN[] = "* ";
+constexpr char HEAD_CLOSE[] = " *";

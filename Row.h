@@ -7,24 +7,26 @@ struct Row
 {
 private:
     Cell _cells[MAX_COLUMN_COUNT];
-    int _size;
+    int _size = 0;
+    int _isValid = true;
 
 public:
-    Row();
-    Row(const Cell *, int);
+    Row() = default;        //
+    Row(const Cell *, int); //
 
-    int getSize() const;
-    const Row &getRow() const;
-    const Cell *getCells() const;
+    int getSize() const;          //
+    const Cell *getCells() const; //
 
-    void setRow(const Cell *, int);
-    bool setCell(int, const char *);
+    bool setRow(const Cell *, int);          //
+    bool setCell(int, const char *);         //
+    bool setCellFullSpan(int, const char *); //
 
-    void addCell(const Cell &);
-    void addCell(const Cell &, int);
+    bool addCell(const Cell &);      //
+    bool addCell(const Cell &, int); //
 
-    void removeCell();
-    void removeCell(int);
+    bool removeCell();    //
+    bool removeCell(int); //
 
-    bool isEmpty() const;
+    bool isEmpty() const; //
+    bool isValid() const; //
 };
