@@ -95,6 +95,17 @@ void Table::print(std::ostream &out) const
     }
 }
 
+bool Table::isEmpty() const
+{
+    return _rowsCount < 1;
+}
+
+void Table::clear()
+{
+    _colsCount = _rowsCount = _width = 0;
+    _rows[0] = Row();
+}
+
 const Row *Table::getRows() const
 {
     return _rows;
@@ -140,6 +151,9 @@ bool Table::addRow(int idx, const Row &row)
 
 bool Table::loadFromFile(const char *fileName)
 {
+    if (!isEmpty())
+        clear();
+
     std::ifstream file(fileName, std::ios::in);
     if (!file.is_open())
         return false;

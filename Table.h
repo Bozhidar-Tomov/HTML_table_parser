@@ -40,6 +40,8 @@ public:
     bool removeRow(int);
 
     void print(std::ostream &) const;
+    bool isEmpty() const;
+    void clear();
 
 private:
     void setWidth(const Row &);

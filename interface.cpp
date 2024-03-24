@@ -79,6 +79,7 @@ public:
 
     void clear()
     {
+        _params[0][0] = {'\0'};
         _count = 0;
         _pos = 0;
     }
@@ -87,15 +88,22 @@ public:
 
 namespace Handlers
 {
-    void handleFileOperation(Option option, Table &table, Params &params)
+    char fileName[MAX_NAME_SIZE + 1] = {'\0'};
+
+    void handleFileOperation(Option option, Table &table)
     {
         const char *operation = {(option == Option::load) ? "loaded." : "saved."};
-        bool success = (option == Option::load) ? table.loadFromFile(params.getCurr()) : table.saveToFile(params.getCurr());
+        const char *file = params.eof() ? fileName : params.getCurr();
+        bool success = (option == Option::load) ? table.loadFromFile(file) : table.saveToFile(file);
 
         if (!success)
-            std::cout << "File " << params.getCurr() << " cannot be " << operation << std::endl;
+            std::cout << "File " << file << " cannot be " << operation << std::endl;
         else
+        {
             std::cout << "Table successfully " << operation << std::endl;
+            if (option == Option ::load)
+                myStrCpy(fileName, file);
+        }
     }
 };
 
@@ -143,7 +151,7 @@ void run()
                 break;
             }
 
-            Handlers::handleFileOperation(getOption(option), table, params);
+            Handlers::handleFileOperation(getOption(option), table);
         }
         break;
         case Option::addRow:
@@ -156,8 +164,8 @@ void run()
                 break;
             }
 
-            int rowIdx = strToInt(params.getCurr() - 1);
-            if (rowIdx != -1)
+            int rowIdx = strToInt(params.getCurr()) - 1;
+            if (rowIdx >= 0)
                 params.getNext();
 
             int idx = 0;
@@ -165,10 +173,16 @@ void run()
             while (!params.eof())
                 cells[idx++] = Cell(params.getNext());
 
-            if (rowIdx == -1)
-                table.addRow(Row(cells, idx));
+            if (rowIdx < 0)
+            {
+                if (!table.addRow(Row(cells, idx)))
+                    std::cout << "Cannot add row." << std::endl;
+            }
             else
-                table.addRow(rowIdx, Row(cells, idx));
+            {
+                if (!table.addRow(rowIdx, Row(cells, idx)))
+                    std::cout << "Cannot add row." << std::endl;
+            }
         }
         break;
         case Option::print:
@@ -184,21 +198,21 @@ void run()
                 break;
             }
 
-            int idx = strToInt(params.getCurr() - 1);
-            if (idx == -1)
-                std::cout << "Invalid index!\n";
+            int idx = strToInt(params.getCurr()) - 1;
+            if (idx < 0)
+                std::cout << "Invalid row number!\n";
             else if (!table.removeRow(idx))
-                std::cout << "Cannot remove row at index " << idx << "." << std::endl;
+                std::cout << "Cannot remove row number " << idx + 1 << "." << std::endl;
         }
         break;
         case Option::edit:
         {
-            int rowIdx = strToInt(params.getNext() - 1);
-            int colIdx = strToInt(params.getNext() - 1);
+            int rowIdx = strToInt(params.getNext()) - 1;
+            int colIdx = strToInt(params.getNext()) - 1;
 
-            if (rowIdx == -1 || colIdx == -1)
+            if (rowIdx < 0 || colIdx < 0)
             {
-                std::cout << "Not an index!\n";
+                std::cout << "Invalid row number!\n";
                 break;
             }
 
@@ -210,6 +224,7 @@ void run()
         }
         break;
         case Option::quit:
+            Handlers::handleFileOperation(Option::save, table);
             return;
         default:
             std::cout << "Invalid command\n";

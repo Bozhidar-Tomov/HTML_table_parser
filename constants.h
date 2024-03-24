@@ -3,6 +3,7 @@
 constexpr int MAX_COLUMN_COUNT = 30;
 constexpr int MAX_ROW_COUNT = 300;
 constexpr int MAX_FIELD_SIZE = 50;
+constexpr int MAX_NAME_SIZE = 50;
 
 constexpr char OPENING_TAG = '<';
 constexpr char CLOSING_TAG = '>';
