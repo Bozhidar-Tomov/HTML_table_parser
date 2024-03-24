@@ -55,7 +55,11 @@ public:
         std::stringstream ss(line);
 
         while (!ss.eof() && _count < MAX_NUM_OF_PARAMS)
-            ss.getline(_params[_count++], MAX_TAG_ARGUMENT_SIZE, ' ');
+        {
+            ss.getline(_params[_count], MAX_TAG_ARGUMENT_SIZE, ' ');
+            if (_params[_count][0] != '\0')
+                ++_count;
+        }
     }
 
     const char *getNext() const
